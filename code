@@ -1,0 +1,38 @@
+from win32 import win32api
+import tkinter as tk
+
+monitors = win32api.EnumDisplayMonitors()
+for monitor in monitors:
+    print(win32api.GetMonitorInfo(monitor[0]))
+
+
+class MainWindow(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self)
+
+        self.title("This is the MainWindow")
+        self._is_hidden = False
+        self.window1 = OtherWindow(self, title="window 1")
+        self.window2 = OtherWindow(self, title="window 2")
+
+    def toggle_hide(self):
+        if self._is_hidden:
+            self.iconify()
+            self.deiconify()
+        else:
+            self.withdraw()
+
+        self._is_hidden = not self._is_hidden
+
+
+class OtherWindow(tk.Toplevel):
+    def __init__(self, master, *args, **kwargs):
+        tk.Toplevel.__init__(self, master)
+        if 'title' in kwargs:
+            self.title(kwargs['title'])
+        self._is_hidden = False
+
+
+if __name__ == '__main__':
+    root = MainWindow()
+    root.mainloop()
