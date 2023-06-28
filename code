@@ -1,38 +1,38 @@
 from win32 import win32api
-import tkinter as tk
+import cv2
 
+sizes = [(800, 600)]
+coords = [(0, 0)]
 monitors = win32api.EnumDisplayMonitors()
+n = len(monitors)
+print(n)
 for monitor in monitors:
-    print(win32api.GetMonitorInfo(monitor[0]))
+    d = win32api.GetMonitorInfo(monitor[0])
+    print(d)
+    sizes.append((d['Monitor'][2], d['Monitor'][3]))
+    coords.append((d['Monitor'][0], d['Monitor'][1]))
+print(coords, sizes)
 
+names = ['first.avi', 'second.avi']
+window_titles = ['first', 'second']
 
-class MainWindow(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self)
+cap = [cv2.VideoCapture(i) for i in names]
 
-        self.title("This is the MainWindow")
-        self._is_hidden = False
-        self.window1 = OtherWindow(self, title="window 1")
-        self.window2 = OtherWindow(self, title="window 2")
+frames = [None] * len(names)
+ret = [None] * len(names)
 
-    def toggle_hide(self):
-        if self._is_hidden:
-            self.iconify()
-            self.deiconify()
-        else:
-            self.withdraw()
+while True:
+    for i, c in enumerate(cap):
+        if c is not None:
+            ret[i], frames[i] = c.read()
+    for i, f in enumerate(frames):
+        if ret[i] is True:
+            cv2.imshow(window_titles[i], cv2.resize(frames[i], sizes[i]))
+            cv2.moveWindow(window_titles[i], coords[i][0], coords[i][1])
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+for c in cap:
+    if c is not None:
+        c.release()
 
-        self._is_hidden = not self._is_hidden
-
-
-class OtherWindow(tk.Toplevel):
-    def __init__(self, master, *args, **kwargs):
-        tk.Toplevel.__init__(self, master)
-        if 'title' in kwargs:
-            self.title(kwargs['title'])
-        self._is_hidden = False
-
-
-if __name__ == '__main__':
-    root = MainWindow()
-    root.mainloop()
+cv2.destroyAllWindows()
